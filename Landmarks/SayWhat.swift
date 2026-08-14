@@ -191,3 +191,132 @@ struct SayWhat_Previews: PreviewProvider {
             .environmentObject(AppState())
     }
 }
+
+struct WelcomeView: View {
+    var body: some View {
+        ZStack(alignment: .bottom) {
+            AppTheme.background.ignoresSafeArea()
+
+            RoundedRectangle(cornerRadius: 70)
+                .fill(Color.blue.opacity(0.08))
+                .frame(height: 72)
+                .offset(y: 34)
+
+            VStack(spacing: 0) {
+                Spacer()
+
+                ZStack {
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 82, height: 82)
+
+                    Image(systemName: "waveform.circle")
+                        .font(.system(size: 46))
+                        .foregroundColor(AppTheme.blue)
+                }
+
+                Spacer().frame(height: 34)
+
+                Text("Welcome to")
+                    .font(.title3)
+                    .foregroundColor(AppTheme.text)
+
+                Text("Say What!")
+                    .font(.system(size: 36, weight: .bold))
+                    .foregroundColor(AppTheme.blue)
+
+                Spacer().frame(height: 22)
+
+                Text("Click here to take a brief\ntour of the app!")
+                    .font(.body)
+                    .multilineTextAlignment(.center)
+                    .foregroundColor(AppTheme.text)
+                    .lineSpacing(5)
+
+                Spacer().frame(height: 38)
+
+                NavigationLink(destination: SayWhat()) {
+                    HStack {
+                        Spacer()
+                        Text("Take the Tour")
+                            .font(.headline)
+                            .fontWeight(.bold)
+                        Image(systemName: "chevron.right")
+                        Spacer()
+                    }
+                    .foregroundColor(.white)
+                    .frame(height: 56)
+                    .background(AppTheme.blue)
+                    .cornerRadius(8)
+                }
+                .padding(.horizontal, 30)
+
+                NavigationLink(destination: SayWhat()) {
+                    Text("Skip for now")
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
+                        .padding(20)
+                }
+
+                Spacer()
+            }
+        }
+        .navigationBarHidden(true)
+    }
+}
+
+struct RecentVenuesView: View {
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Image(systemName: "ear")
+                    .foregroundColor(AppTheme.blue)
+                Spacer()
+                Text("Say What?")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(AppTheme.blue)
+                Spacer()
+                Image(systemName: "gearshape")
+                    .foregroundColor(AppTheme.blue)
+            }
+            .padding()
+            .background(Color.white)
+
+            ScrollView {
+                VStack(alignment: .leading, spacing: 14) {
+                    HStack {
+                        Text("Recent Venues")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                        Spacer()
+                        Text("View all")
+                            .font(.caption)
+                            .foregroundColor(AppTheme.blue)
+                    }
+
+                    VenueRow(title: "City Museum", subtitle: "Visited Yesterday", icon: "building.columns")
+                    VenueRow(title: "Starlight Cinema", subtitle: "Visited 3 days ago", icon: "film")
+
+                    HStack {
+                        Text("Saved Venues")
+                            .font(.title3)
+                            .fontWeight(.bold)
+                        Spacer()
+                        Text("View all")
+                            .font(.caption)
+                            .foregroundColor(AppTheme.blue)
+                    }
+                    .padding(.top, 12)
+
+                    VenueRow(title: "Riverside Amphitheater", subtitle: "Saved venue", icon: "theatermasks")
+                }
+                .padding(20)
+            }
+            .background(AppTheme.background)
+
+            BottomNavBar(selectedTab: .recent)
+        }
+        .navigationBarHidden(true)
+    }
+}

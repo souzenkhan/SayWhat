@@ -14,6 +14,7 @@ struct ListeningView: View {
     @EnvironmentObject var appState: AppState
     
     @State private var waveformHeights: [CGFloat] = [40, 70, 60, 80, 55, 35, 90, 45, 65, 30]
+    @State private var showEndConfirmation = false
     
     var body: some View {
         VStack(spacing: 0) {
@@ -45,6 +46,10 @@ struct ListeningView: View {
             // Main Audio Content
             ScrollView {
                 VStack(spacing: 22) {
+                    Text("Connected!")
+                        .font(.system(size: 28, weight: .bold))
+                        .foregroundColor(AppTheme.text)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     
                     // Live Session Card
                     VStack(alignment: .leading, spacing: 12) {
@@ -110,66 +115,36 @@ struct ListeningView: View {
                     .shadow(color: Color.black.opacity(0.06), radius: 6)
                     .padding(.horizontal)
                     
-                    // Bluetooth Device Card
-                    VStack(alignment: .leading, spacing: 18) {
-                        
-                        HStack {
-                            Image(systemName: "headphones")
-                                .font(.title2)
-                                .foregroundColor(AppTheme.blue)
-                            
-                            Text("CONNECTED DEVICE")
-                                .font(.caption)
-                                .fontWeight(.bold)
-                                .foregroundColor(AppTheme.text)
-                            
-                            Spacer()
-                        }
-                        
-                        Text(audioManager.currentOutput)
-                            .font(.title2)
-                            .fontWeight(.bold)
-                            .foregroundColor(AppTheme.blue)
-                        
-                        Text(audioManager.currentOutput.lowercased().contains("speaker") || audioManager.currentOutput.lowercased().contains("receiver") ? "No Bluetooth headphones detected." : "Audio is routing through this device.")
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                        
-                        HStack(spacing: 20) {
-                            Button(action: {
-                                audioManager.play()
-                            }) {
-                                Text("Play")
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.white)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(AppTheme.blue)
-                                    .cornerRadius(8)
-                            }
-                            
-                            Button(action: {
-                                audioManager.pause()
-                            }) {
-                                Text("Pause")
-                                    .fontWeight(.bold)
-                                    .foregroundColor(AppTheme.text)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(Color.gray.opacity(0.2))
-                                    .cornerRadius(8)
-                            }
-                        }
+                    NavigationLink(destination: TranslationView()) {
+                        Text("Translate")
+                            .font(.system(size: 25, weight: .bold))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 22)
+                            .frame(height: 58)
+                            .background(AppTheme.blue)
+                            .cornerRadius(8)
                     }
-                    .padding()
-                    .background(Color.white)
-                    .cornerRadius(14)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 14)
-                            .stroke(Color.gray.opacity(0.25), lineWidth: 1)
-                    )
-                    .shadow(color: Color.black.opacity(0.06), radius: 6)
+
+                    Button(action: { showEndConfirmation = true }) {
+                        Text("End Session")
+                            .font(.system(size: 25, weight: .bold))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 58)
+                            .background(AppTheme.blue)
+                            .cornerRadius(8)
+                    }
                     .padding(.horizontal)
+
+                    NavigationLink(destination: Setup()) {
+                        Text("Back")
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 34)
+                            .frame(height: 42)
+                            .background(Color(red: 0.31, green: 0.41, blue: 0.79))
+                            .cornerRadius(7)
+                    }
                     
                     // Status Info
                     VStack(spacing: 8) {
@@ -190,9 +165,125 @@ struct ListeningView: View {
             .background(AppTheme.background)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             
-            BottomNavBar(selectedTab: .audio)
+            BottomNavBar(selectedTab: .scan)
         }
         .navigationBarHidden(true)
+        .alert(isPresented: $showEndConfirmation) {
+            Alert(
+                title: Text("Are you sure you want to end the session?"),
+                primaryButton: .destructive(Text("Yes")) {
+                    audioManager.stop()
+                    appState.isConnected = false
+                    appState.connectionStatus = "Not Connected To Venue's Audio Stream"
+                },
+                secondaryButton: .cancel(Text("Cancel"))
+            )
+        }
+    }
+}
+
+struct TranslationView: View {
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Image(systemName: "ear")
+                    .foregroundColor(AppTheme.blue)
+                Spacer()
+                Text("Say What?")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(AppTheme.blue)
+                Spacer()
+                Image(systemName: "gearshape")
+                    .foregroundColor(AppTheme.blue)
+            }
+            .padding()
+            .background(Color.white)
+
+            ScrollView {
+                VStack(spacing: 14) {
+                    VStack(alignment: .leading, spacing: 9) {
+                        HStack {
+                            Text("● LIVE")
+                                .font(.caption)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 6)
+                                .background(Color.red)
+                                .cornerRadius(16)
+                            Text("Session Active")
+                            Spacer()
+                            Image(systemName: "bookmark")
+                                .foregroundColor(AppTheme.blue)
+                        }
+                        Text("Grand Concert Hall ↗")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                        Text("◷  00:42:17")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                    }
+                    .padding()
+                    .background(Color.white)
+                    .cornerRadius(8)
+
+                    TranslationCard(
+                        language: "English (US)",
+                        copy: "Out, damned spot! Out, I say! One, two—why, then ‘tis time to do't."
+                    )
+
+                    Image(systemName: "arrow.down")
+                        .foregroundColor(.white)
+                        .frame(width: 42, height: 42)
+                        .background(AppTheme.blue)
+                        .clipShape(Circle())
+
+                    TranslationCard(
+                        language: "Spanish (Spain)",
+                        copy: "¡Fuera, maldita mancha! ¡Fuera, te digo! Una, dos... bien, entonces es hora de hacerlo."
+                    )
+
+                    NavigationLink(destination: ListeningView()) {
+                        Text("Back")
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 34)
+                            .frame(height: 42)
+                            .background(Color(red: 0.31, green: 0.41, blue: 0.79))
+                            .cornerRadius(7)
+                    }
+                    .padding(.top, 16)
+                }
+                .padding(20)
+            }
+            .background(AppTheme.background)
+        }
+        .navigationBarHidden(true)
+    }
+}
+
+private struct TranslationCard: View {
+    let language: String
+    let copy: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(language)
+                .font(.title3)
+                .fontWeight(.bold)
+                .foregroundColor(AppTheme.blue)
+            Text(copy)
+                .font(.body)
+                .fontWeight(.semibold)
+                .foregroundColor(.gray)
+                .lineSpacing(4)
+            Spacer()
+        }
+        .padding()
+        .frame(maxWidth: .infinity, minHeight: 170, alignment: .leading)
+        .background(Color.white)
+        .cornerRadius(8)
     }
 }
 

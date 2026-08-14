@@ -12,6 +12,7 @@ enum Tab {
     case home
     case scan
     case audio
+    case recent
     case help
 }
 
@@ -59,16 +60,16 @@ struct BottomNavBar: View {
 
             Spacer()
 
-            NavigationLink(destination: ListeningView()) {
+            NavigationLink(destination: RecentVenuesView()) {
                 VStack(spacing: 4) {
-                    Image(systemName: "speaker.wave.2.fill")
+                    Image(systemName: "clock.arrow.circlepath")
                         .font(.system(size: 18))
 
-                    Text("Audio")
+                    Text("Recent")
                         .font(.caption2)
                 }
                 .foregroundColor(
-                    selectedTab == .audio
+                    selectedTab == .recent
                     ? AppTheme.blue
                     : .gray
                 )

@@ -24,6 +24,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -45,17 +47,22 @@ fun AudioScreen(
     playbackStatus: String,
     onHomeClick: () -> Unit,
     onScanClick: () -> Unit,
+    onRecentClick: () -> Unit,
     onHelpClick: () -> Unit,
-    onSettingsClick: () -> Unit
+    onSettingsClick: () -> Unit,
+    onTranslateClick: () -> Unit,
+    onEndSessionClick: () -> Unit,
+    onBackClick: () -> Unit
 ) {
     val scrollState = rememberScrollState()
 
     Scaffold(
+        topBar = { AudioTopHeader(onSettingsClick = onSettingsClick) },
         bottomBar = {
             AudioBottomBar(
                 onHomeClick = onHomeClick,
                 onScanClick = onScanClick,
-                onAudioClick = {},
+                onAudioClick = onRecentClick,
                 onHelpClick = onHelpClick
             )
         },
@@ -71,18 +78,52 @@ fun AudioScreen(
                 .padding(bottom = 90.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            AudioTopHeader(onSettingsClick = onSettingsClick)
-
             Spacer(modifier = Modifier.height(26.dp))
+
+            Text(
+                text = "Connected!",
+                modifier = Modifier.fillMaxWidth(),
+                color = Color(0xFF17172A),
+                fontSize = 27.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(18.dp))
 
             AudioSessionCard(playbackStatus = playbackStatus)
 
-            Spacer(modifier = Modifier.height(22.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
-            BluetoothStatusCard(
-                bluetoothDeviceName = bluetoothDeviceName,
-                bluetoothStatus = bluetoothStatus
-            )
+            Button(
+                onClick = onTranslateClick,
+                modifier = Modifier.width(210.dp).height(58.dp),
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3F61E8))
+            ) {
+                Text("Translate", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = onEndSessionClick,
+                modifier = Modifier.fillMaxWidth().height(58.dp),
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3F61E8))
+            ) {
+                Text("End Session", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+            }
+
+            Spacer(modifier = Modifier.height(38.dp))
+
+            Button(
+                onClick = onBackClick,
+                modifier = Modifier.width(112.dp).height(42.dp),
+                shape = RoundedCornerShape(7.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5069C9))
+            ) {
+                Text("Back", fontWeight = FontWeight.Bold)
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
         }
@@ -94,7 +135,9 @@ fun AudioTopHeader(onSettingsClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(52.dp),
+            .height(56.dp)
+            .background(Color.White)
+            .padding(horizontal = 20.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -164,12 +207,14 @@ fun AudioSessionCard(playbackStatus: String) {
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            Text(
-                text = "Grand Concert Hall",
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                text = "Grand Concert Hall ↗",
                 color = Color(0xFF17172A),
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold
-            )
+                )
+            }
 
             Spacer(modifier = Modifier.height(10.dp))
 
@@ -379,9 +424,9 @@ fun AudioBottomBar(
         )
 
         AudioBottomNavIcon(
-            iconRes = R.drawable.ic_volume,
-            label = "Audio",
-            selected = true,
+            iconRes = R.drawable.ic_recent,
+            label = "Recent",
+            selected = false,
             onClick = onAudioClick
         )
 

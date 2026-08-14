@@ -31,10 +31,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -42,6 +44,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 
@@ -53,13 +56,16 @@ data class DeviceItem(
 )
 
 enum class AppScreen {
+    WELCOME,
     HOME,
     QR_SCAN,
     SETUP,
     AUDIO,
     HELP,
     ABOUT,
-    CONNECTION_ERROR
+    CONNECTION_ERROR,
+    RECENT,
+    TRANSLATE
 }
 
 class MainActivity : ComponentActivity() {
@@ -86,7 +92,8 @@ class MainActivity : ComponentActivity() {
             updatePlaybackStatus = { newStatus ->
                 playbackStatus = newStatus
             }
-            var currentScreen by remember { mutableStateOf(AppScreen.HOME) }
+            var currentScreen by remember { mutableStateOf(AppScreen.WELCOME) }
+            var showEndConfirmation by remember { mutableStateOf(false) }
             var bluetoothDeviceName by remember { mutableStateOf("No Bluetooth device connected") }
             var shouldStartAudio by remember { mutableStateOf(false) }
             val permissionLauncher = rememberLauncherForActivityResult(
@@ -122,13 +129,20 @@ class MainActivity : ComponentActivity() {
 
             MaterialTheme {
                 when (currentScreen) {
+                    AppScreen.WELCOME -> {
+                        WelcomeScreen(
+                            onTakeTour = { currentScreen = AppScreen.HOME },
+                            onSkip = { currentScreen = AppScreen.HOME }
+                        )
+                    }
+
                     AppScreen.HOME -> {
                         SayWhatHomeScreen(
                             onScanClick = {
                                 currentScreen = AppScreen.SETUP
                             },
                             onAudioClick = {
-                                currentScreen = AppScreen.AUDIO
+                                currentScreen = AppScreen.RECENT
                             },
                             onHelpClick = {
                                 currentScreen = AppScreen.HELP
@@ -158,7 +172,7 @@ class MainActivity : ComponentActivity() {
                                 currentScreen = AppScreen.SETUP
                             },
                             onAudioClick = {
-                                currentScreen = AppScreen.AUDIO
+                                currentScreen = AppScreen.RECENT
                             },
                             onHelpClick = {
                                 currentScreen = AppScreen.HELP
@@ -194,7 +208,7 @@ class MainActivity : ComponentActivity() {
                                 currentScreen = AppScreen.SETUP
                             },
                             onAudioClick = {
-                                currentScreen = AppScreen.AUDIO
+                                currentScreen = AppScreen.RECENT
                             },
                             onSettingsClick = {
                                 startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS))
@@ -220,11 +234,23 @@ class MainActivity : ComponentActivity() {
                             onScanClick = {
                                 currentScreen = AppScreen.SETUP
                             },
+                            onRecentClick = {
+                                currentScreen = AppScreen.RECENT
+                            },
                             onHelpClick = {
                                 currentScreen = AppScreen.HELP
                             },
                             onSettingsClick = {
                                 startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS))
+                            },
+                            onTranslateClick = {
+                                currentScreen = AppScreen.TRANSLATE
+                            },
+                            onEndSessionClick = {
+                                showEndConfirmation = true
+                            },
+                            onBackClick = {
+                                currentScreen = AppScreen.SETUP
                             }
                         )
                     }
@@ -238,7 +264,7 @@ class MainActivity : ComponentActivity() {
                                 currentScreen = AppScreen.SETUP
                             },
                             onAudioClick = {
-                                currentScreen = AppScreen.AUDIO
+                                currentScreen = AppScreen.RECENT
                             },
                             onAboutClick = {
                                 currentScreen = AppScreen.ABOUT
@@ -261,7 +287,7 @@ class MainActivity : ComponentActivity() {
                                 currentScreen = AppScreen.SETUP
                             },
                             onAudioClick = {
-                                currentScreen = AppScreen.AUDIO
+                                currentScreen = AppScreen.RECENT
                             },
                             onHelpClick = {
                                 currentScreen = AppScreen.HELP
@@ -287,7 +313,7 @@ class MainActivity : ComponentActivity() {
                                 currentScreen = AppScreen.SETUP
                             },
                             onAudioClick = {
-                                currentScreen = AppScreen.AUDIO
+                                currentScreen = AppScreen.RECENT
                             },
                             onHelpClick = {
                                 currentScreen = AppScreen.HELP
@@ -297,6 +323,51 @@ class MainActivity : ComponentActivity() {
                             }
                         )
                     }
+
+                    AppScreen.RECENT -> {
+                        RecentVenuesScreen(
+                            onHomeClick = { currentScreen = AppScreen.HOME },
+                            onConnectClick = { currentScreen = AppScreen.SETUP },
+                            onHelpClick = { currentScreen = AppScreen.HELP },
+                            onSettingsClick = {
+                                startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS))
+                            }
+                        )
+                    }
+
+                    AppScreen.TRANSLATE -> {
+                        TranslateScreen(
+                            onBack = { currentScreen = AppScreen.AUDIO },
+                            onSettingsClick = {
+                                startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS))
+                            }
+                        )
+                    }
+                }
+
+                if (showEndConfirmation) {
+                    AlertDialog(
+                        onDismissRequest = { showEndConfirmation = false },
+                        containerColor = Color(0xFF3154C8),
+                        title = {
+                            Text(
+                                "Are you sure you want to end the session?",
+                                color = Color.White
+                            )
+                        },
+                        confirmButton = {
+                            TextButton(onClick = {
+                                showEndConfirmation = false
+                                stopPlayback()
+                                currentScreen = AppScreen.HOME
+                            }) { Text("Yes", color = Color(0xFF17172A)) }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { showEndConfirmation = false }) {
+                                Text("Cancel", color = Color(0xFF17172A))
+                            }
+                        }
+                    )
                 }
             }
         }
