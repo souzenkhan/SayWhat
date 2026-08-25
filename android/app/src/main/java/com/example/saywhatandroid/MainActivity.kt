@@ -83,6 +83,7 @@ class MainActivity : ComponentActivity() {
         val bluetoothManager = getSystemService(BLUETOOTH_SERVICE) as BluetoothManager
         bluetoothAdapter = bluetoothManager.adapter
         audioManager = getSystemService(AUDIO_SERVICE) as AudioManager
+        val venueSessionStore = VenueSessionStore(applicationContext)
 
         setContent {
             var devices by remember { mutableStateOf(emptyList<DeviceItem>()) }
@@ -94,7 +95,7 @@ class MainActivity : ComponentActivity() {
             var currentScreen by remember { mutableStateOf(AppScreen.WELCOME) }
             var showEndConfirmation by remember { mutableStateOf(false) }
             var currentSession by remember { mutableStateOf<VenueSession?>(null) }
-            var recentSessions by remember { mutableStateOf(emptyList<VenueSession>()) }
+            var recentSessions by remember { mutableStateOf(venueSessionStore.load()) }
             var bluetoothDeviceName by remember { mutableStateOf("No Bluetooth device connected") }
             var shouldStartAudio by remember { mutableStateOf(false) }
             val permissionLauncher = rememberLauncherForActivityResult(
@@ -162,8 +163,7 @@ class MainActivity : ComponentActivity() {
                             onVenueScanned = { payload ->
                                 VenueSessionParser.parse(payload)?.let { session ->
                                     currentSession = session
-                                    recentSessions = (listOf(session) + recentSessions)
-                                        .distinctBy { it.id }
+                                    recentSessions = venueSessionStore.record(session, recentSessions)
                                     shouldStartAudio = true
                                     currentScreen = AppScreen.AUDIO
                                 }
@@ -197,8 +197,7 @@ class MainActivity : ComponentActivity() {
                             onConnectUsingUrlClick = { url ->
                                 VenueSessionParser.parse(url)?.let { session ->
                                     currentSession = session
-                                    recentSessions = (listOf(session) + recentSessions)
-                                        .distinctBy { it.id }
+                                    recentSessions = venueSessionStore.record(session, recentSessions)
                                     shouldStartAudio = true
                                     currentScreen = AppScreen.AUDIO
                                 }

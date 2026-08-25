@@ -18,4 +18,4 @@ They can also contain a URL whose query parameters carry the same metadata:
 https://audio.example.com/live?sessionId=venue-session-id&venueName=Venue%20display%20name
 ```
 
-Supported aliases are `session_id`, `venue_name`, `venue`, `name`, `stream_url`, and `stream`. If the name is omitted, the app derives a neutral label from the stream host. Recent venues are populated only from sessions the user actually connects to.
+Supported aliases are `session_id`, `venue_name`, `venue`, `name`, `stream_url`, and `stream`. If the name is omitted, the app derives a neutral label from the stream host. Recent venues are populated only from sessions the user actually connects to and are saved locally on the device across app restarts. The most recent 50 unique sessions are retained.

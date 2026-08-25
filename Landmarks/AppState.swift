@@ -1,19 +1,33 @@
 import Foundation
 import Combine
 
-struct VenueSession: Identifiable, Equatable {
+struct VenueSession: Identifiable, Equatable, Codable {
     let id: String
     let venueName: String
     let streamURL: URL
 }
 
 final class AppState: ObservableObject {
+    private static let recentSessionsKey = "sayWhat.recentVenueSessions"
+    private static let maximumRecentSessions = 50
+    private let defaults: UserDefaults
+
     @Published var isConnected: Bool = false
     @Published var streamURLString: String = ""
     @Published var venueName: String = ""
     @Published var connectionStatus: String = "Not Connected To Venue's Audio Stream"
     @Published var currentSession: VenueSession?
     @Published var recentSessions: [VenueSession] = []
+
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+
+        guard let data = defaults.data(forKey: Self.recentSessionsKey),
+              let savedSessions = try? JSONDecoder().decode([VenueSession].self, from: data) else {
+            return
+        }
+        recentSessions = Array(savedSessions.prefix(Self.maximumRecentSessions))
+    }
 
     @discardableResult
     func connect(using payload: String) -> VenueSession? {
@@ -26,7 +40,14 @@ final class AppState: ObservableObject {
         connectionStatus = "Connected To Venue's Audio Stream"
         recentSessions.removeAll { $0.id == session.id }
         recentSessions.insert(session, at: 0)
+        recentSessions = Array(recentSessions.prefix(Self.maximumRecentSessions))
+        persistRecentSessions()
         return session
+    }
+
+    private func persistRecentSessions() {
+        guard let data = try? JSONEncoder().encode(recentSessions) else { return }
+        defaults.set(data, forKey: Self.recentSessionsKey)
     }
 
     private static func parseSession(_ payload: String) -> VenueSession? {
