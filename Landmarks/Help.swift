@@ -86,7 +86,7 @@ struct Help: View {
                         )
                     }
                     .padding(24)
-                    .background(Color.blue.opacity(0.10))
+                    .background(AppTheme.blue.opacity(0.10))
                     .cornerRadius(14)
 
                     VStack(alignment: .leading, spacing: 14) {
@@ -120,7 +120,7 @@ struct Help: View {
                     .cornerRadius(14)
                     .overlay(
                         RoundedRectangle(cornerRadius: 14)
-                            .stroke(Color.blue.opacity(0.18), lineWidth: 1)
+                            .stroke(AppTheme.blue.opacity(0.18), lineWidth: 1)
                     )
                     .shadow(color: Color.black.opacity(0.05), radius: 6)
 

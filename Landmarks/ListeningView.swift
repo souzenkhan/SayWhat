@@ -15,6 +15,7 @@ struct ListeningView: View {
     
     @State private var waveformHeights: [CGFloat] = [40, 70, 60, 80, 55, 35, 90, 45, 65, 30]
     @State private var showEndConfirmation = false
+    @State private var sessionEnded = false
     
     var body: some View {
         VStack(spacing: 0) {
@@ -32,7 +33,7 @@ struct ListeningView: View {
                     .foregroundColor(AppTheme.blue)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 4)
-                    .background(Color.blue.opacity(0.08))
+                    .background(AppTheme.blue.opacity(0.08))
                     .cornerRadius(8)
                 
                 Spacer()
@@ -145,6 +146,10 @@ struct ListeningView: View {
                             .background(Color(red: 0.31, green: 0.41, blue: 0.79))
                             .cornerRadius(7)
                     }
+
+                    NavigationLink(destination: SayWhat(), isActive: $sessionEnded) {
+                        EmptyView()
+                    }
                     
                     // Status Info
                     VStack(spacing: 8) {
@@ -175,6 +180,7 @@ struct ListeningView: View {
                     audioManager.stop()
                     appState.isConnected = false
                     appState.connectionStatus = "Not Connected To Venue's Audio Stream"
+                    sessionEnded = true
                 },
                 secondaryButton: .cancel(Text("Cancel"))
             )

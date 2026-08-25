@@ -20,7 +20,7 @@ struct SayWhat: View {
                         .foregroundColor(AppTheme.blue)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 4)
-                        .background(Color.blue.opacity(0.08))
+                        .background(AppTheme.blue.opacity(0.08))
                         .cornerRadius(8)
                 }
 
@@ -36,8 +36,7 @@ struct SayWhat: View {
                 VStack(spacing: 28) {
 
                     Text("Hearing clearly\nshouldn't be a luxury.")
-                        .font(.title3)
-                        .fontWeight(.bold)
+                        .font(.system(size: 29, weight: .bold))
                         .multilineTextAlignment(.center)
                         .foregroundColor(AppTheme.blue)
                         .padding(.top, 30)
@@ -51,34 +50,15 @@ struct SayWhat: View {
 
                     Image("hearingMan")
                         .resizable()
-                        .scaledToFit()
-                        .frame(width: 280, height: 280)
+                        .aspectRatio(1, contentMode: .fit)
+                        .frame(maxWidth: .infinity)
                         .background(Color.white)
                         .cornerRadius(14)
                         .padding(.horizontal, 24)
-                    
-                    Button(action: {}) {
-                            Text("NEXT")
-                                .font(.caption)
-                                .fontWeight(.bold)
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 22)
-                                .padding(.vertical, 10)
-                                .background(AppTheme.blue)
-                                .cornerRadius(8)
-                        }
-                    
-                    
-                    Text("Ready to Listen?")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(AppTheme.text)
 
-                    Text("Connect to the venue audio by clicking on the button below.")
-                        .font(.body)
-                        .multilineTextAlignment(.center)
+                    Text("Ready to Listen?")
+                        .font(.system(size: 25, weight: .bold))
                         .foregroundColor(AppTheme.text)
-                        .padding(.horizontal, 35)
 
                     NavigationLink(destination: Setup()) {
                         HStack {
@@ -92,6 +72,15 @@ struct SayWhat: View {
                         .background(AppTheme.blue)
                         .cornerRadius(8)
                         .padding(.horizontal, 24)
+                    }
+
+                    NavigationLink(destination: About()) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "questionmark.circle")
+                            Text("About Say What?")
+                        }
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(AppTheme.blue)
                     }
 
                     Spacer(minLength: 30)
@@ -117,7 +106,7 @@ struct VenueRow: View {
             Image(systemName: icon)
                 .foregroundColor(AppTheme.blue)
                 .frame(width: 45, height: 45)
-                .background(Color.blue.opacity(0.10))
+                .background(AppTheme.blue.opacity(0.10))
                 .cornerRadius(10)
 
             VStack(alignment: .leading, spacing: 4) {
@@ -157,7 +146,7 @@ struct WelcomeView: View {
             AppTheme.background.ignoresSafeArea()
 
             RoundedRectangle(cornerRadius: 70)
-                .fill(Color.blue.opacity(0.08))
+                .fill(AppTheme.blue.opacity(0.08))
                 .frame(height: 72)
                 .offset(y: 34)
 

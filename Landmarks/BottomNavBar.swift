@@ -34,11 +34,11 @@ struct BottomNavBar: View {
                     Text("Home")
                         .font(.caption2)
                 }
-                .foregroundColor(
-                    selectedTab == .home
-                    ? AppTheme.blue
-                    : .gray
-                )
+                .foregroundColor(selectedTab == .home ? .white : .gray)
+                .padding(.horizontal, selectedTab == .home ? 14 : 4)
+                .padding(.vertical, selectedTab == .home ? 8 : 4)
+                .background(selectedTab == .home ? AppTheme.blue : Color.clear)
+                .cornerRadius(24)
             }
 
             Spacer()
@@ -51,11 +51,11 @@ struct BottomNavBar: View {
                     Text("Connect")
                         .font(.caption2)
                 }
-                .foregroundColor(
-                    selectedTab == .scan
-                    ? AppTheme.blue
-                    : .gray
-                )
+                .foregroundColor(selectedTab == .scan ? .white : .gray)
+                .padding(.horizontal, selectedTab == .scan ? 14 : 4)
+                .padding(.vertical, selectedTab == .scan ? 8 : 4)
+                .background(selectedTab == .scan ? AppTheme.blue : Color.clear)
+                .cornerRadius(24)
             }
 
             Spacer()
@@ -68,11 +68,11 @@ struct BottomNavBar: View {
                     Text("Recent")
                         .font(.caption2)
                 }
-                .foregroundColor(
-                    selectedTab == .recent
-                    ? AppTheme.blue
-                    : .gray
-                )
+                .foregroundColor(selectedTab == .recent ? .white : .gray)
+                .padding(.horizontal, selectedTab == .recent ? 14 : 4)
+                .padding(.vertical, selectedTab == .recent ? 8 : 4)
+                .background(selectedTab == .recent ? AppTheme.blue : Color.clear)
+                .cornerRadius(24)
             }
 
             Spacer()
@@ -85,11 +85,11 @@ struct BottomNavBar: View {
                     Text("Help")
                         .font(.caption2)
                 }
-                .foregroundColor(
-                    selectedTab == .help
-                    ? AppTheme.blue
-                    : .gray
-                )
+                .foregroundColor(selectedTab == .help ? .white : .gray)
+                .padding(.horizontal, selectedTab == .help ? 14 : 4)
+                .padding(.vertical, selectedTab == .help ? 8 : 4)
+                .background(selectedTab == .help ? AppTheme.blue : Color.clear)
+                .cornerRadius(24)
             }
 
             Spacer()

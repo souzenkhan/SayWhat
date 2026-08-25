@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -33,14 +34,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.runtime.rememberCoroutineScope
-import kotlinx.coroutines.launch
 import androidx.compose.material3.Icon
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.foundation.layout.offset
 
 @Composable
 fun SayWhatHomeScreen(
@@ -51,7 +47,6 @@ fun SayWhatHomeScreen(
     onAboutClick: () -> Unit
 ) {
     val scrollState = rememberScrollState()
-    val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
@@ -86,24 +81,6 @@ fun SayWhatHomeScreen(
             IntroSection()
 
             Spacer(modifier = Modifier.height(16.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
-            ) {
-                NextButton(
-                    onClick = {
-                        coroutineScope.launch {
-                            val nextPosition = scrollState.value + 650
-                            scrollState.animateScrollTo(
-                                if (nextPosition > scrollState.maxValue) scrollState.maxValue else nextPosition
-                            )
-                        }
-                    }
-                )
-            }
-
-            Spacer(modifier = Modifier.height(22.dp))
 
             IllustrationCard()
 
@@ -150,9 +127,10 @@ fun TopHeader(
             color = Color(0xFF3047E8),
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.clickable {
-                onAboutClick()
-            }
+            modifier = Modifier
+                .background(Color(0x143047E8), RoundedCornerShape(8.dp))
+                .clickable { onAboutClick() }
+                .padding(horizontal = 10.dp, vertical = 4.dp)
         )
 
         Icon(
@@ -176,7 +154,7 @@ fun IntroSection() {
     ) {
         Text(
             text = "Hearing clearly\nshouldn't be a luxury.",
-            color = Color(0xFF2835D8),
+            color = Color(0xFF3047E8),
             fontSize = 29.sp,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
@@ -186,7 +164,7 @@ fun IntroSection() {
         Spacer(modifier = Modifier.height(20.dp))
 
         Text(
-            text = "Say What? helps people with hearing challenges listen more clearly in public spaces like lectures, concerts, theaters, and services. By connecting to venue audio, the app delivers clearer sound directly to headphones, earbuds, or hearing aids.",
+            text = "Say What? was born from a simple observation: public spaces are often designed for aesthetics, not acoustics. Our mission is to bridge the communication gap for those with hearing challenges using advanced real-time audio processing.",
             color = Color(0xFF333333),
             fontSize = 17.sp,
             textAlign = TextAlign.Center,
@@ -202,7 +180,7 @@ fun IllustrationCard() {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(210.dp),
+            .aspectRatio(1f),
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color.White
@@ -211,19 +189,14 @@ fun IllustrationCard() {
     ) {
         Box(
             modifier = Modifier
-                .fillMaxSize()
-                .clipToBounds(),
-            contentAlignment = Alignment.CenterStart
+                .fillMaxSize(),
+            contentAlignment = Alignment.Center
         ) {
             Image(
                 painter = painterResource(id = R.drawable.listening_illustration),
                 contentDescription = "Listening illustration",
                 modifier = Modifier
-                    .fillMaxWidth(1f)
-                    .height(205.dp)
-                    .offset {
-                        IntOffset(x = -170, y = 0)
-                    },
+                    .fillMaxSize(),
                 contentScale = ContentScale.Fit
             )
         }
@@ -243,15 +216,6 @@ fun ReadySection() {
             fontWeight = FontWeight.Bold
         )
 
-        Spacer(modifier = Modifier.height(14.dp))
-
-        Text(
-            text = "Connect to the venue audio by\nclicking on the button below",
-            color = Color(0xFF151515),
-            fontSize = 17.sp,
-            textAlign = TextAlign.Center,
-            lineHeight = 25.sp
-        )
     }
 }
 
@@ -507,34 +471,6 @@ fun AboutLink(onAboutClick: () -> Unit) {
             color = Color(0xFF3047E8),
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold
-        )
-    }
-}
-
-@Composable
-fun NextButton(onClick: () -> Unit) {
-    WireframeNextButton(onClick = onClick)
-}
-
-@Composable
-fun WireframeNextButton(onClick: () -> Unit) {
-    Button(
-        onClick = onClick,
-        modifier = Modifier
-            .width(76.dp)
-            .height(38.dp),
-        shape = RoundedCornerShape(5.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = Color(0xFF3047E8)
-        ),
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp)
-    ) {
-        Text(
-            text = "NEXT",
-            color = Color.White,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Bold,
-            letterSpacing = 0.5.sp
         )
     }
 }
