@@ -148,7 +148,7 @@ struct FixRow: View {
             Image(systemName: icon)
                 .foregroundColor(AppTheme.blue)
                 .frame(width: 38, height: 38)
-                .background(Color.blue.opacity(0.10))
+                .background(AppTheme.blue.opacity(0.10))
                 .clipShape(Circle())
 
             VStack(alignment: .leading, spacing: 4) {

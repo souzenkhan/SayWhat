@@ -9,7 +9,7 @@
 import SwiftUI
 
 struct AppTheme {
-    static let blue = Color(red: 0.0, green: 0.32, blue: 0.85)
-    static let background = Color(red: 0.97, green: 0.97, blue: 1.0)
-    static let text = Color(red: 0.08, green: 0.12, blue: 0.20)
+    static let blue = Color(red: 48.0 / 255.0, green: 71.0 / 255.0, blue: 232.0 / 255.0)
+    static let background = Color(red: 248.0 / 255.0, green: 248.0 / 255.0, blue: 255.0 / 255.0)
+    static let text = Color(red: 23.0 / 255.0, green: 23.0 / 255.0, blue: 42.0 / 255.0)
 }

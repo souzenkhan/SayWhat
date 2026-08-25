@@ -57,7 +57,10 @@ struct About: View {
                 .padding(.top, 45)
             }
             .background(AppTheme.background)
+
+            BottomNavBar(selectedTab: .home)
         }
+        .navigationBarHidden(true)
     }
 }
 

@@ -20,7 +20,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
                options connectionOptions: UIScene.ConnectionOptions) {
 
         let contentView = NavigationView {
-            SayWhat()
+            WelcomeView()
         }
         .navigationViewStyle(StackNavigationViewStyle())
         .environmentObject(appState)

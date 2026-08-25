@@ -241,8 +241,8 @@ fun AboutBottomBar(
         )
 
         AboutBottomNavIcon(
-            iconRes = R.drawable.ic_volume,
-            label = "Audio",
+            iconRes = R.drawable.ic_recent,
+            label = "Recent",
             selected = false,
             onClick = onAudioClick
         )

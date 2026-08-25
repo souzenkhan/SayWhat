@@ -20,7 +20,7 @@ struct SayWhat: View {
                         .foregroundColor(AppTheme.blue)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 4)
-                        .background(Color.blue.opacity(0.08))
+                        .background(AppTheme.blue.opacity(0.08))
                         .cornerRadius(8)
                 }
 
@@ -36,8 +36,7 @@ struct SayWhat: View {
                 VStack(spacing: 28) {
 
                     Text("Hearing clearly\nshouldn't be a luxury.")
-                        .font(.title3)
-                        .fontWeight(.bold)
+                        .font(.system(size: 29, weight: .bold))
                         .multilineTextAlignment(.center)
                         .foregroundColor(AppTheme.blue)
                         .padding(.top, 30)
@@ -51,34 +50,15 @@ struct SayWhat: View {
 
                     Image("hearingMan")
                         .resizable()
-                        .scaledToFit()
-                        .frame(width: 280, height: 280)
+                        .aspectRatio(1, contentMode: .fit)
+                        .frame(maxWidth: .infinity)
                         .background(Color.white)
                         .cornerRadius(14)
                         .padding(.horizontal, 24)
-                    
-                    Button(action: {}) {
-                            Text("NEXT")
-                                .font(.caption)
-                                .fontWeight(.bold)
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 22)
-                                .padding(.vertical, 10)
-                                .background(AppTheme.blue)
-                                .cornerRadius(8)
-                        }
-                    
-                    
-                    Text("Ready to Listen?")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(AppTheme.text)
 
-                    Text("Connect to the venue audio by clicking on the button below.")
-                        .font(.body)
-                        .multilineTextAlignment(.center)
+                    Text("Ready to Listen?")
+                        .font(.system(size: 25, weight: .bold))
                         .foregroundColor(AppTheme.text)
-                        .padding(.horizontal, 35)
 
                     NavigationLink(destination: Setup()) {
                         HStack {
@@ -94,46 +74,14 @@ struct SayWhat: View {
                         .padding(.horizontal, 24)
                     }
 
-                    VStack(alignment: .leading, spacing: 12) {
-                        HStack {
-                            Text("Recent Venues")
-                                .font(.headline)
-                                .foregroundColor(AppTheme.text)
-
-                            Spacer()
-
-                            Text("View All")
-                                .font(.caption)
-                                .foregroundColor(AppTheme.blue)
+                    NavigationLink(destination: About()) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "questionmark.circle")
+                            Text("About Say What?")
                         }
-
-                        VenueRow(title: "City Museum", subtitle: "Visited Yesterday", icon: "building.columns")
-                        VenueRow(title: "Starlight Cinema", subtitle: "Visited 3 days ago", icon: "film")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(AppTheme.blue)
                     }
-                    .padding(.horizontal, 24)
-
-                    Button(action: {}) {
-                        Text("NEXT")
-                            .font(.caption)
-                            .fontWeight(.bold)
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 22)
-                            .padding(.vertical, 10)
-                            .background(AppTheme.blue)
-                            .cornerRadius(8)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 24)
-
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Nearby Venues")
-                            .font(.headline)
-                            .foregroundColor(AppTheme.text)
-
-                        VenueRow(title: "St. Jude’s Cathedral", subtitle: "0.2 miles away", icon: "mappin.circle")
-                        VenueRow(title: "Olympic Stadium", subtitle: "0.8 miles away", icon: "building.2")
-                    }
-                    .padding(.horizontal, 24)
 
                     Spacer(minLength: 30)
                 }
@@ -158,7 +106,7 @@ struct VenueRow: View {
             Image(systemName: icon)
                 .foregroundColor(AppTheme.blue)
                 .frame(width: 45, height: 45)
-                .background(Color.blue.opacity(0.10))
+                .background(AppTheme.blue.opacity(0.10))
                 .cornerRadius(10)
 
             VStack(alignment: .leading, spacing: 4) {
@@ -189,5 +137,135 @@ struct SayWhat_Previews: PreviewProvider {
     static var previews: some View {
         SayWhat()
             .environmentObject(AppState())
+    }
+}
+
+struct WelcomeView: View {
+    var body: some View {
+        ZStack(alignment: .bottom) {
+            AppTheme.background.ignoresSafeArea()
+
+            RoundedRectangle(cornerRadius: 70)
+                .fill(AppTheme.blue.opacity(0.08))
+                .frame(height: 72)
+                .offset(y: 34)
+
+            VStack(spacing: 0) {
+                Spacer()
+
+                ZStack {
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 82, height: 82)
+
+                    Image(systemName: "waveform.circle")
+                        .font(.system(size: 46))
+                        .foregroundColor(AppTheme.blue)
+                }
+
+                Spacer().frame(height: 34)
+
+                Text("Welcome to")
+                    .font(.title3)
+                    .foregroundColor(AppTheme.text)
+
+                Text("Say What!")
+                    .font(.system(size: 36, weight: .bold))
+                    .foregroundColor(AppTheme.blue)
+
+                Spacer().frame(height: 22)
+
+                Text("Click here to take a brief\ntour of the app!")
+                    .font(.body)
+                    .multilineTextAlignment(.center)
+                    .foregroundColor(AppTheme.text)
+                    .lineSpacing(5)
+
+                Spacer().frame(height: 38)
+
+                NavigationLink(destination: SayWhat()) {
+                    HStack {
+                        Spacer()
+                        Text("Take the Tour")
+                            .font(.headline)
+                            .fontWeight(.bold)
+                        Image(systemName: "chevron.right")
+                        Spacer()
+                    }
+                    .foregroundColor(.white)
+                    .frame(height: 56)
+                    .background(AppTheme.blue)
+                    .cornerRadius(8)
+                }
+                .padding(.horizontal, 30)
+
+                NavigationLink(destination: SayWhat()) {
+                    Text("Skip for now")
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
+                        .padding(20)
+                }
+
+                Spacer()
+            }
+        }
+        .navigationBarHidden(true)
+    }
+}
+
+struct RecentVenuesView: View {
+    @EnvironmentObject var appState: AppState
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Image(systemName: "ear")
+                    .foregroundColor(AppTheme.blue)
+                Spacer()
+                Text("Say What?")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(AppTheme.blue)
+                Spacer()
+                Image(systemName: "gearshape")
+                    .foregroundColor(AppTheme.blue)
+            }
+            .padding()
+            .background(Color.white)
+
+            ScrollView {
+                VStack(alignment: .leading, spacing: 14) {
+                    HStack {
+                        Text("Recent Venues")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                        Spacer()
+                        Text("View all")
+                            .font(.caption)
+                            .foregroundColor(AppTheme.blue)
+                    }
+
+                    if appState.recentSessions.isEmpty {
+                        Text("Your connected venues will appear here.")
+                            .font(.body)
+                            .foregroundColor(.gray)
+                            .padding(.vertical, 28)
+                    } else {
+                        ForEach(appState.recentSessions) { session in
+                            VenueRow(
+                                title: session.venueName,
+                                subtitle: "Connected session",
+                                icon: "building.2"
+                            )
+                        }
+                    }
+                }
+                .padding(20)
+            }
+            .background(AppTheme.background)
+
+            BottomNavBar(selectedTab: .recent)
+        }
+        .navigationBarHidden(true)
     }
 }

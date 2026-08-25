@@ -16,6 +16,7 @@ struct Setup: View {
 
     @State private var showURLField = false
     @State private var streamURL = ""
+    @State private var isSessionReady = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -52,7 +53,7 @@ struct Setup: View {
                     VStack(spacing: 24) {
                         ZStack {
                             Circle()
-                                .fill(Color.blue.opacity(0.08))
+                                .fill(AppTheme.blue.opacity(0.08))
                                 .frame(width: 90, height: 90)
 
                             Image(systemName: "qrcode.viewfinder")
@@ -116,15 +117,10 @@ struct Setup: View {
                             .padding(.horizontal)
 
                         Button("Enter") {
-                            let selectedStream = streamURL.isEmpty
-                                ? "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
-                                : streamURL
-
-                            appState.streamURLString = selectedStream
-                            appState.isConnected = true
-                            appState.connectionStatus = "Connected To Venue's Audio Stream"
-
-                            audioManager.loadStream(from: selectedStream)
+                            if let session = appState.connect(using: streamURL) {
+                                audioManager.loadStream(from: session.streamURL.absoluteString)
+                                isSessionReady = true
+                            }
                         }
                         .font(.headline)
                         .foregroundColor(.white)
@@ -132,6 +128,10 @@ struct Setup: View {
                         .padding(.vertical, 8)
                         .background(AppTheme.blue)
                         .cornerRadius(10)
+
+                        NavigationLink(destination: ListeningView(), isActive: $isSessionReady) {
+                            EmptyView()
+                        }
                     }
                 }
                 .padding(.top, 20)

@@ -11,7 +11,6 @@ import android.media.AudioDeviceCallback
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import android.media.MediaPlayer
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
@@ -31,10 +30,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -42,6 +43,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 
@@ -53,13 +55,16 @@ data class DeviceItem(
 )
 
 enum class AppScreen {
+    WELCOME,
     HOME,
     QR_SCAN,
     SETUP,
     AUDIO,
     HELP,
     ABOUT,
-    CONNECTION_ERROR
+    CONNECTION_ERROR,
+    RECENT,
+    TRANSLATE
 }
 
 class MainActivity : ComponentActivity() {
@@ -68,9 +73,10 @@ class MainActivity : ComponentActivity() {
     private lateinit var audioManager: AudioManager
     private var mediaPlayer: MediaPlayer? = null
     private var audioDeviceCallback: AudioDeviceCallback? = null
-    private val STREAM_URL = "http://10.14.143.38:3000/audio-live"
     private var wasPlayingBeforeDeviceChange = false
     private var updatePlaybackStatus: ((String) -> Unit)? = null
+    private var showPlaybackError: (() -> Unit)? = null
+    private var activeStreamUrl: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -78,6 +84,7 @@ class MainActivity : ComponentActivity() {
         val bluetoothManager = getSystemService(BLUETOOTH_SERVICE) as BluetoothManager
         bluetoothAdapter = bluetoothManager.adapter
         audioManager = getSystemService(AUDIO_SERVICE) as AudioManager
+        val venueSessionStore = VenueSessionStore(applicationContext)
 
         setContent {
             var devices by remember { mutableStateOf(emptyList<DeviceItem>()) }
@@ -86,7 +93,11 @@ class MainActivity : ComponentActivity() {
             updatePlaybackStatus = { newStatus ->
                 playbackStatus = newStatus
             }
-            var currentScreen by remember { mutableStateOf(AppScreen.HOME) }
+            var currentScreen by remember { mutableStateOf(AppScreen.WELCOME) }
+            showPlaybackError = { currentScreen = AppScreen.CONNECTION_ERROR }
+            var showEndConfirmation by remember { mutableStateOf(false) }
+            var currentSession by remember { mutableStateOf<VenueSession?>(null) }
+            var recentSessions by remember { mutableStateOf(venueSessionStore.load()) }
             var bluetoothDeviceName by remember { mutableStateOf("No Bluetooth device connected") }
             var shouldStartAudio by remember { mutableStateOf(false) }
             val permissionLauncher = rememberLauncherForActivityResult(
@@ -117,18 +128,26 @@ class MainActivity : ComponentActivity() {
                         audioManager.unregisterAudioDeviceCallback(it)
                     }
                     releasePlayer()
+                    showPlaybackError = null
                 }
             }
 
             MaterialTheme {
                 when (currentScreen) {
+                    AppScreen.WELCOME -> {
+                        WelcomeScreen(
+                            onTakeTour = { currentScreen = AppScreen.HOME },
+                            onSkip = { currentScreen = AppScreen.HOME }
+                        )
+                    }
+
                     AppScreen.HOME -> {
                         SayWhatHomeScreen(
                             onScanClick = {
                                 currentScreen = AppScreen.SETUP
                             },
                             onAudioClick = {
-                                currentScreen = AppScreen.AUDIO
+                                currentScreen = AppScreen.RECENT
                             },
                             onHelpClick = {
                                 currentScreen = AppScreen.HELP
@@ -144,9 +163,13 @@ class MainActivity : ComponentActivity() {
 
                     AppScreen.QR_SCAN -> {
                         QRScanScreen(
-                            onUseScanClick = {
-                                shouldStartAudio = true
-                                currentScreen = AppScreen.AUDIO
+                            onVenueScanned = { payload ->
+                                VenueSessionParser.parse(payload)?.let { session ->
+                                    currentSession = session
+                                    recentSessions = venueSessionStore.record(session, recentSessions)
+                                    shouldStartAudio = true
+                                    currentScreen = AppScreen.AUDIO
+                                }
                             },
                             onBackClick = {
                                 currentScreen = AppScreen.SETUP
@@ -158,7 +181,7 @@ class MainActivity : ComponentActivity() {
                                 currentScreen = AppScreen.SETUP
                             },
                             onAudioClick = {
-                                currentScreen = AppScreen.AUDIO
+                                currentScreen = AppScreen.RECENT
                             },
                             onHelpClick = {
                                 currentScreen = AppScreen.HELP
@@ -175,14 +198,12 @@ class MainActivity : ComponentActivity() {
                                 currentScreen = AppScreen.QR_SCAN
                             },
                             onConnectUsingUrlClick = { url ->
-                                val fixedUrl = if (url.startsWith("http://") || url.startsWith("https://")) {
-                                    url
-                                } else {
-                                    "https://$url"
+                                VenueSessionParser.parse(url)?.let { session ->
+                                    currentSession = session
+                                    recentSessions = venueSessionStore.record(session, recentSessions)
+                                    shouldStartAudio = true
+                                    currentScreen = AppScreen.AUDIO
                                 }
-
-                                val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(fixedUrl))
-                                startActivity(browserIntent)
                             },
                             onHelpClick = {
                                 currentScreen = AppScreen.HELP
@@ -194,7 +215,7 @@ class MainActivity : ComponentActivity() {
                                 currentScreen = AppScreen.SETUP
                             },
                             onAudioClick = {
-                                currentScreen = AppScreen.AUDIO
+                                currentScreen = AppScreen.RECENT
                             },
                             onSettingsClick = {
                                 startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS))
@@ -205,7 +226,7 @@ class MainActivity : ComponentActivity() {
                     AppScreen.AUDIO -> {
                         LaunchedEffect(shouldStartAudio) {
                             if (shouldStartAudio) {
-                                playAudio(STREAM_URL)
+                                currentSession?.streamUrl?.let(::playAudio)
                                 shouldStartAudio = false
                             }
                         }
@@ -214,17 +235,30 @@ class MainActivity : ComponentActivity() {
                             bluetoothDeviceName = bluetoothDeviceName,
                             bluetoothStatus = statusText,
                             playbackStatus = playbackStatus,
+                            venueName = currentSession?.venueName ?: "Venue audio session",
                             onHomeClick = {
                                 currentScreen = AppScreen.HOME
                             },
                             onScanClick = {
                                 currentScreen = AppScreen.SETUP
                             },
+                            onRecentClick = {
+                                currentScreen = AppScreen.RECENT
+                            },
                             onHelpClick = {
                                 currentScreen = AppScreen.HELP
                             },
                             onSettingsClick = {
                                 startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS))
+                            },
+                            onTranslateClick = {
+                                currentScreen = AppScreen.TRANSLATE
+                            },
+                            onEndSessionClick = {
+                                showEndConfirmation = true
+                            },
+                            onBackClick = {
+                                currentScreen = AppScreen.SETUP
                             }
                         )
                     }
@@ -238,7 +272,7 @@ class MainActivity : ComponentActivity() {
                                 currentScreen = AppScreen.SETUP
                             },
                             onAudioClick = {
-                                currentScreen = AppScreen.AUDIO
+                                currentScreen = AppScreen.RECENT
                             },
                             onAboutClick = {
                                 currentScreen = AppScreen.ABOUT
@@ -261,7 +295,7 @@ class MainActivity : ComponentActivity() {
                                 currentScreen = AppScreen.SETUP
                             },
                             onAudioClick = {
-                                currentScreen = AppScreen.AUDIO
+                                currentScreen = AppScreen.RECENT
                             },
                             onHelpClick = {
                                 currentScreen = AppScreen.HELP
@@ -287,7 +321,7 @@ class MainActivity : ComponentActivity() {
                                 currentScreen = AppScreen.SETUP
                             },
                             onAudioClick = {
-                                currentScreen = AppScreen.AUDIO
+                                currentScreen = AppScreen.RECENT
                             },
                             onHelpClick = {
                                 currentScreen = AppScreen.HELP
@@ -297,12 +331,60 @@ class MainActivity : ComponentActivity() {
                             }
                         )
                     }
+
+                    AppScreen.RECENT -> {
+                        RecentVenuesScreen(
+                            sessions = recentSessions,
+                            onHomeClick = { currentScreen = AppScreen.HOME },
+                            onConnectClick = { currentScreen = AppScreen.SETUP },
+                            onHelpClick = { currentScreen = AppScreen.HELP },
+                            onSettingsClick = {
+                                startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS))
+                            }
+                        )
+                    }
+
+                    AppScreen.TRANSLATE -> {
+                        TranslateScreen(
+                            venueName = currentSession?.venueName ?: "Venue audio session",
+                            onBack = { currentScreen = AppScreen.AUDIO },
+                            onSettingsClick = {
+                                startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS))
+                            }
+                        )
+                    }
+                }
+
+                if (showEndConfirmation) {
+                    AlertDialog(
+                        onDismissRequest = { showEndConfirmation = false },
+                        containerColor = Color(0xFF3154C8),
+                        title = {
+                            Text(
+                                "Are you sure you want to end the session?",
+                                color = Color.White
+                            )
+                        },
+                        confirmButton = {
+                            TextButton(onClick = {
+                                showEndConfirmation = false
+                                stopPlayback()
+                                currentScreen = AppScreen.HOME
+                            }) { Text("Yes", color = Color(0xFF17172A)) }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { showEndConfirmation = false }) {
+                                Text("Cancel", color = Color(0xFF17172A))
+                            }
+                        }
+                    )
                 }
             }
         }
     }
     private fun playAudio(source: String) {
         try {
+            activeStreamUrl = source
             updatePlaybackStatus?.invoke("Connecting")
             Log.d("AUDIO", "playAudio called with source: $source")
 
@@ -340,6 +422,7 @@ class MainActivity : ComponentActivity() {
                         Log.e("AUDIO", "Playback error: what=$what extra=$extra")
                         releasePlayer()
                         updatePlaybackStatus?.invoke("Stopped")
+                        runOnUiThread { showPlaybackError?.invoke() }
                         true
                     }
 
@@ -363,6 +446,7 @@ class MainActivity : ComponentActivity() {
             Log.e("AUDIO", "Exception in playAudio", e)
             releasePlayer()
             updatePlaybackStatus?.invoke("Stopped")
+            runOnUiThread { showPlaybackError?.invoke() }
         }
     }
 
@@ -422,7 +506,7 @@ class MainActivity : ComponentActivity() {
                     } catch (e: Exception) {
                         Log.e("AUDIO", "Restarting playback after Bluetooth disconnect", e)
                         releasePlayer()
-                        playAudio(STREAM_URL)
+                        activeStreamUrl?.let(::playAudio)
                     }
                 }
             }
