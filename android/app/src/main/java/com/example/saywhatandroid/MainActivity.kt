@@ -75,6 +75,7 @@ class MainActivity : ComponentActivity() {
     private var audioDeviceCallback: AudioDeviceCallback? = null
     private var wasPlayingBeforeDeviceChange = false
     private var updatePlaybackStatus: ((String) -> Unit)? = null
+    private var showPlaybackError: (() -> Unit)? = null
     private var activeStreamUrl: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -93,6 +94,7 @@ class MainActivity : ComponentActivity() {
                 playbackStatus = newStatus
             }
             var currentScreen by remember { mutableStateOf(AppScreen.WELCOME) }
+            showPlaybackError = { currentScreen = AppScreen.CONNECTION_ERROR }
             var showEndConfirmation by remember { mutableStateOf(false) }
             var currentSession by remember { mutableStateOf<VenueSession?>(null) }
             var recentSessions by remember { mutableStateOf(venueSessionStore.load()) }
@@ -126,6 +128,7 @@ class MainActivity : ComponentActivity() {
                         audioManager.unregisterAudioDeviceCallback(it)
                     }
                     releasePlayer()
+                    showPlaybackError = null
                 }
             }
 
@@ -419,6 +422,7 @@ class MainActivity : ComponentActivity() {
                         Log.e("AUDIO", "Playback error: what=$what extra=$extra")
                         releasePlayer()
                         updatePlaybackStatus?.invoke("Stopped")
+                        runOnUiThread { showPlaybackError?.invoke() }
                         true
                     }
 
@@ -442,6 +446,7 @@ class MainActivity : ComponentActivity() {
             Log.e("AUDIO", "Exception in playAudio", e)
             releasePlayer()
             updatePlaybackStatus?.invoke("Stopped")
+            runOnUiThread { showPlaybackError?.invoke() }
         }
     }
 

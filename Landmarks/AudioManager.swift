@@ -87,6 +87,8 @@ final class AudioManager: NSObject, ObservableObject {
         isBuffering = false
         playbackStatus = "Stream Loaded"
         errorMessage = ""
+
+        play()
     }
 
     func play() {
