@@ -70,7 +70,7 @@ struct ListeningView: View {
                             Spacer()
                         }
                         
-                        Text("Grand Concert Hall")
+                        Text(appState.currentSession?.venueName ?? "Venue audio session")
                             .font(.largeTitle)
                             .fontWeight(.bold)
                             .foregroundColor(AppTheme.text)
@@ -183,6 +183,8 @@ struct ListeningView: View {
 }
 
 struct TranslationView: View {
+    @EnvironmentObject var appState: AppState
+
     var body: some View {
         VStack(spacing: 0) {
             HStack {
@@ -217,7 +219,7 @@ struct TranslationView: View {
                             Image(systemName: "bookmark")
                                 .foregroundColor(AppTheme.blue)
                         }
-                        Text("Grand Concert Hall ↗")
+                        Text("\(appState.currentSession?.venueName ?? "Venue audio session") ↗")
                             .font(.title2)
                             .fontWeight(.bold)
                         Text("◷  00:42:17")

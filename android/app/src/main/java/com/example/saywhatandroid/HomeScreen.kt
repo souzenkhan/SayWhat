@@ -115,32 +115,6 @@ fun SayWhatHomeScreen(
 
             ScanButton(onScanClick = onScanClick)
 
-            Spacer(modifier = Modifier.height(24.dp))
-
-            RecentVenuesSection()
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
-            ) {
-                WireframeNextButton(
-                    onClick = {
-                        coroutineScope.launch {
-                            val nextPosition = scrollState.value + 450
-                            scrollState.animateScrollTo(
-                                if (nextPosition > scrollState.maxValue) scrollState.maxValue else nextPosition
-                            )
-                        }
-                    }
-                )
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            NearbyVenuesSection()
-
             Spacer(modifier = Modifier.height(28.dp))
 
             AboutLink(onAboutClick = onAboutClick)
@@ -344,7 +318,7 @@ fun RecentVenuesSection() {
 
         VenueCard(
             emoji = "🏛",
-            title = "City Museum",
+            title = "Venue audio session",
             subtitle = "Visited\nYesterday"
         )
 
@@ -352,7 +326,7 @@ fun RecentVenuesSection() {
 
         VenueCard(
             emoji = "🎬",
-            title = "Starlight\nCinema",
+            title = "Venue audio session",
             subtitle = "Visited 3\ndays ago"
         )
     }
@@ -440,14 +414,14 @@ fun NearbyVenuesSection() {
         Spacer(modifier = Modifier.height(12.dp))
 
         NearbyVenueItem(
-            title = "St. Jude's Cathedral",
+            title = "Venue audio session",
             distance = "0.2 miles away"
         )
 
         Spacer(modifier = Modifier.height(12.dp))
 
         NearbyVenueItem(
-            title = "Olympic Stadium",
+            title = "Venue audio session",
             distance = "0.8 miles away"
         )
     }

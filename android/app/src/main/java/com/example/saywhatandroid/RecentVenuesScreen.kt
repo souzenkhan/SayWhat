@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun RecentVenuesScreen(
+    sessions: List<VenueSession>,
     onHomeClick: () -> Unit,
     onConnectClick: () -> Unit,
     onHelpClick: () -> Unit,
@@ -53,16 +54,19 @@ fun RecentVenuesScreen(
                 Text("View all", fontSize = 14.sp, color = Color(0xFF3047E8))
             }
             Spacer(Modifier.height(14.dp))
-            RecentVenueCard("🏛", "City Museum", "Visited Yesterday")
-            Spacer(Modifier.height(12.dp))
-            RecentVenueCard("🎬", "Starlight Cinema", "Visited 3 days ago")
-            Spacer(Modifier.height(26.dp))
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Saved Venues", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color(0xFF17172A))
-                Text("View all", fontSize = 14.sp, color = Color(0xFF3047E8))
+            if (sessions.isEmpty()) {
+                Text(
+                    "Your connected venues will appear here.",
+                    color = Color(0xFF5F5F6D),
+                    fontSize = 16.sp,
+                    modifier = Modifier.padding(vertical = 28.dp)
+                )
+            } else {
+                sessions.forEachIndexed { index, session ->
+                    RecentVenueCard("⌂", session.venueName, "Connected session")
+                    if (index < sessions.lastIndex) Spacer(Modifier.height(12.dp))
+                }
             }
-            Spacer(Modifier.height(14.dp))
-            RecentVenueCard("🎭", "Riverside Amphitheater", "Saved venue")
         }
     }
 }

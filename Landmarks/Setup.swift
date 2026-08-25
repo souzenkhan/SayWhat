@@ -116,15 +116,9 @@ struct Setup: View {
                             .padding(.horizontal)
 
                         Button("Enter") {
-                            let selectedStream = streamURL.isEmpty
-                                ? "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
-                                : streamURL
-
-                            appState.streamURLString = selectedStream
-                            appState.isConnected = true
-                            appState.connectionStatus = "Connected To Venue's Audio Stream"
-
-                            audioManager.loadStream(from: selectedStream)
+                            if let session = appState.connect(using: streamURL) {
+                                audioManager.loadStream(from: session.streamURL.absoluteString)
+                            }
                         }
                         .font(.headline)
                         .foregroundColor(.white)

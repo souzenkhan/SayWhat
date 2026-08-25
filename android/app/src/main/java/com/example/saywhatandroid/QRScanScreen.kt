@@ -24,15 +24,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import android.widget.Toast
+import com.google.mlkit.vision.barcode.common.Barcode
+import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions
+import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
 
 @Composable
 fun QRScanScreen(
-    onUseScanClick: () -> Unit,
+    onVenueScanned: (String) -> Unit,
     onBackClick: () -> Unit,
     onHomeClick: () -> Unit,
     onScanClick: () -> Unit,
@@ -40,6 +45,13 @@ fun QRScanScreen(
     onHelpClick: () -> Unit,
     onSettingsClick: () -> Unit
 ) {
+    val context = LocalContext.current
+    val scannerOptions = GmsBarcodeScannerOptions.Builder()
+        .setBarcodeFormats(Barcode.FORMAT_QR_CODE)
+        .enableAutoZoom()
+        .build()
+    val scanner = GmsBarcodeScanning.getClient(context, scannerOptions)
+
     Scaffold(
         topBar = {
             QRScanTopHeader(onSettingsClick = onSettingsClick)
@@ -111,7 +123,20 @@ fun QRScanScreen(
             Spacer(modifier = Modifier.height(36.dp))
 
             Button(
-                onClick = onUseScanClick,
+                onClick = {
+                    scanner.startScan()
+                        .addOnSuccessListener { barcode ->
+                            val payload = barcode.rawValue
+                            if (payload.isNullOrBlank()) {
+                                Toast.makeText(context, "This QR code is empty.", Toast.LENGTH_SHORT).show()
+                            } else {
+                                onVenueScanned(payload)
+                            }
+                        }
+                        .addOnFailureListener {
+                            Toast.makeText(context, "Unable to scan that QR code.", Toast.LENGTH_SHORT).show()
+                        }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(58.dp),

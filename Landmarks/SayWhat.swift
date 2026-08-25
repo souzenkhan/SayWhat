@@ -94,47 +94,6 @@ struct SayWhat: View {
                         .padding(.horizontal, 24)
                     }
 
-                    VStack(alignment: .leading, spacing: 12) {
-                        HStack {
-                            Text("Recent Venues")
-                                .font(.headline)
-                                .foregroundColor(AppTheme.text)
-
-                            Spacer()
-
-                            Text("View All")
-                                .font(.caption)
-                                .foregroundColor(AppTheme.blue)
-                        }
-
-                        VenueRow(title: "City Museum", subtitle: "Visited Yesterday", icon: "building.columns")
-                        VenueRow(title: "Starlight Cinema", subtitle: "Visited 3 days ago", icon: "film")
-                    }
-                    .padding(.horizontal, 24)
-
-                    Button(action: {}) {
-                        Text("NEXT")
-                            .font(.caption)
-                            .fontWeight(.bold)
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 22)
-                            .padding(.vertical, 10)
-                            .background(AppTheme.blue)
-                            .cornerRadius(8)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 24)
-
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Nearby Venues")
-                            .font(.headline)
-                            .foregroundColor(AppTheme.text)
-
-                        VenueRow(title: "St. Jude’s Cathedral", subtitle: "0.2 miles away", icon: "mappin.circle")
-                        VenueRow(title: "Olympic Stadium", subtitle: "0.8 miles away", icon: "building.2")
-                    }
-                    .padding(.horizontal, 24)
-
                     Spacer(minLength: 30)
                 }
             }
@@ -266,6 +225,8 @@ struct WelcomeView: View {
 }
 
 struct RecentVenuesView: View {
+    @EnvironmentObject var appState: AppState
+
     var body: some View {
         VStack(spacing: 0) {
             HStack {
@@ -295,21 +256,20 @@ struct RecentVenuesView: View {
                             .foregroundColor(AppTheme.blue)
                     }
 
-                    VenueRow(title: "City Museum", subtitle: "Visited Yesterday", icon: "building.columns")
-                    VenueRow(title: "Starlight Cinema", subtitle: "Visited 3 days ago", icon: "film")
-
-                    HStack {
-                        Text("Saved Venues")
-                            .font(.title3)
-                            .fontWeight(.bold)
-                        Spacer()
-                        Text("View all")
-                            .font(.caption)
-                            .foregroundColor(AppTheme.blue)
+                    if appState.recentSessions.isEmpty {
+                        Text("Your connected venues will appear here.")
+                            .font(.body)
+                            .foregroundColor(.gray)
+                            .padding(.vertical, 28)
+                    } else {
+                        ForEach(appState.recentSessions) { session in
+                            VenueRow(
+                                title: session.venueName,
+                                subtitle: "Connected session",
+                                icon: "building.2"
+                            )
+                        }
                     }
-                    .padding(.top, 12)
-
-                    VenueRow(title: "Riverside Amphitheater", subtitle: "Saved venue", icon: "theatermasks")
                 }
                 .padding(20)
             }

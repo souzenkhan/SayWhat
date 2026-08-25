@@ -11,7 +11,6 @@ import android.media.AudioDeviceCallback
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import android.media.MediaPlayer
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
@@ -74,9 +73,9 @@ class MainActivity : ComponentActivity() {
     private lateinit var audioManager: AudioManager
     private var mediaPlayer: MediaPlayer? = null
     private var audioDeviceCallback: AudioDeviceCallback? = null
-    private val STREAM_URL = "http://10.14.143.38:3000/audio-live"
     private var wasPlayingBeforeDeviceChange = false
     private var updatePlaybackStatus: ((String) -> Unit)? = null
+    private var activeStreamUrl: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -94,6 +93,8 @@ class MainActivity : ComponentActivity() {
             }
             var currentScreen by remember { mutableStateOf(AppScreen.WELCOME) }
             var showEndConfirmation by remember { mutableStateOf(false) }
+            var currentSession by remember { mutableStateOf<VenueSession?>(null) }
+            var recentSessions by remember { mutableStateOf(emptyList<VenueSession>()) }
             var bluetoothDeviceName by remember { mutableStateOf("No Bluetooth device connected") }
             var shouldStartAudio by remember { mutableStateOf(false) }
             val permissionLauncher = rememberLauncherForActivityResult(
@@ -158,9 +159,14 @@ class MainActivity : ComponentActivity() {
 
                     AppScreen.QR_SCAN -> {
                         QRScanScreen(
-                            onUseScanClick = {
-                                shouldStartAudio = true
-                                currentScreen = AppScreen.AUDIO
+                            onVenueScanned = { payload ->
+                                VenueSessionParser.parse(payload)?.let { session ->
+                                    currentSession = session
+                                    recentSessions = (listOf(session) + recentSessions)
+                                        .distinctBy { it.id }
+                                    shouldStartAudio = true
+                                    currentScreen = AppScreen.AUDIO
+                                }
                             },
                             onBackClick = {
                                 currentScreen = AppScreen.SETUP
@@ -189,14 +195,13 @@ class MainActivity : ComponentActivity() {
                                 currentScreen = AppScreen.QR_SCAN
                             },
                             onConnectUsingUrlClick = { url ->
-                                val fixedUrl = if (url.startsWith("http://") || url.startsWith("https://")) {
-                                    url
-                                } else {
-                                    "https://$url"
+                                VenueSessionParser.parse(url)?.let { session ->
+                                    currentSession = session
+                                    recentSessions = (listOf(session) + recentSessions)
+                                        .distinctBy { it.id }
+                                    shouldStartAudio = true
+                                    currentScreen = AppScreen.AUDIO
                                 }
-
-                                val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(fixedUrl))
-                                startActivity(browserIntent)
                             },
                             onHelpClick = {
                                 currentScreen = AppScreen.HELP
@@ -219,7 +224,7 @@ class MainActivity : ComponentActivity() {
                     AppScreen.AUDIO -> {
                         LaunchedEffect(shouldStartAudio) {
                             if (shouldStartAudio) {
-                                playAudio(STREAM_URL)
+                                currentSession?.streamUrl?.let(::playAudio)
                                 shouldStartAudio = false
                             }
                         }
@@ -228,6 +233,7 @@ class MainActivity : ComponentActivity() {
                             bluetoothDeviceName = bluetoothDeviceName,
                             bluetoothStatus = statusText,
                             playbackStatus = playbackStatus,
+                            venueName = currentSession?.venueName ?: "Venue audio session",
                             onHomeClick = {
                                 currentScreen = AppScreen.HOME
                             },
@@ -326,6 +332,7 @@ class MainActivity : ComponentActivity() {
 
                     AppScreen.RECENT -> {
                         RecentVenuesScreen(
+                            sessions = recentSessions,
                             onHomeClick = { currentScreen = AppScreen.HOME },
                             onConnectClick = { currentScreen = AppScreen.SETUP },
                             onHelpClick = { currentScreen = AppScreen.HELP },
@@ -337,6 +344,7 @@ class MainActivity : ComponentActivity() {
 
                     AppScreen.TRANSLATE -> {
                         TranslateScreen(
+                            venueName = currentSession?.venueName ?: "Venue audio session",
                             onBack = { currentScreen = AppScreen.AUDIO },
                             onSettingsClick = {
                                 startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS))
@@ -374,6 +382,7 @@ class MainActivity : ComponentActivity() {
     }
     private fun playAudio(source: String) {
         try {
+            activeStreamUrl = source
             updatePlaybackStatus?.invoke("Connecting")
             Log.d("AUDIO", "playAudio called with source: $source")
 
@@ -493,7 +502,7 @@ class MainActivity : ComponentActivity() {
                     } catch (e: Exception) {
                         Log.e("AUDIO", "Restarting playback after Bluetooth disconnect", e)
                         releasePlayer()
-                        playAudio(STREAM_URL)
+                        activeStreamUrl?.let(::playAudio)
                     }
                 }
             }

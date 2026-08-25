@@ -12,6 +12,11 @@ import SwiftUI
 import AVFoundation
 
 struct QRScannerView: View {
+    @EnvironmentObject var appState: AppState
+    @EnvironmentObject var audioManager: AudioManager
+    @State private var scannedPayload = ""
+    @State private var isSessionReady = false
+
     var body: some View {
         VStack(spacing: 0) {
 
@@ -52,7 +57,9 @@ struct QRScannerView: View {
                         .fill(Color.gray.opacity(0.55))
                         .frame(width: 320, height: 320)
 
-                    QRScanner()
+                    QRScanner { payload in
+                        scannedPayload = payload
+                    }
                         .frame(width: 250, height: 250)
                         .cornerRadius(8)
                         .overlay(
@@ -61,7 +68,7 @@ struct QRScannerView: View {
                         )
                 }
 
-                NavigationLink(destination: Setup()) {
+                Button(action: connectScannedSession) {
                     HStack {
                         Image(systemName: "qrcode.viewfinder")
                         Text("Use Scan")
@@ -74,6 +81,11 @@ struct QRScannerView: View {
                     .cornerRadius(10)
                 }
                 .padding(.horizontal, 24)
+                .disabled(scannedPayload.isEmpty)
+
+                NavigationLink(destination: ListeningView(), isActive: $isSessionReady) {
+                    EmptyView()
+                }
 
                 NavigationLink(destination: SayWhat()) {
                     HStack {
@@ -99,14 +111,46 @@ struct QRScannerView: View {
         .background(AppTheme.background)
         .navigationBarHidden(true)
     }
+
+    private func connectScannedSession() {
+        guard let session = appState.connect(using: scannedPayload) else { return }
+        audioManager.loadStream(from: session.streamURL.absoluteString)
+        isSessionReady = true
+    }
 }
 
 struct QRScanner: UIViewControllerRepresentable {
+    let onCodeScanned: (String) -> Void
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(onCodeScanned: onCodeScanned)
+    }
+
     func makeUIViewController(context: Context) -> QRScannerController {
-        return QRScannerController()
+        let controller = QRScannerController()
+        controller.delegate = context.coordinator
+        return controller
     }
 
     func updateUIViewController(_ uiViewController: QRScannerController, context: Context) {
+    }
+
+    final class Coordinator: NSObject, AVCaptureMetadataOutputObjectsDelegate {
+        private let onCodeScanned: (String) -> Void
+
+        init(onCodeScanned: @escaping (String) -> Void) {
+            self.onCodeScanned = onCodeScanned
+        }
+
+        func metadataOutput(
+            _ output: AVCaptureMetadataOutput,
+            didOutput metadataObjects: [AVMetadataObject],
+            from connection: AVCaptureConnection
+        ) {
+            guard let code = metadataObjects.first as? AVMetadataMachineReadableCodeObject,
+                  let value = code.stringValue else { return }
+            onCodeScanned(value)
+        }
     }
 }
 

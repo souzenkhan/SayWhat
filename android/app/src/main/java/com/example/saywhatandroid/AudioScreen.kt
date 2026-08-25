@@ -45,6 +45,7 @@ fun AudioScreen(
     bluetoothDeviceName: String,
     bluetoothStatus: String,
     playbackStatus: String,
+    venueName: String,
     onHomeClick: () -> Unit,
     onScanClick: () -> Unit,
     onRecentClick: () -> Unit,
@@ -90,7 +91,7 @@ fun AudioScreen(
 
             Spacer(modifier = Modifier.height(18.dp))
 
-            AudioSessionCard(playbackStatus = playbackStatus)
+            AudioSessionCard(playbackStatus = playbackStatus, venueName = venueName)
 
             Spacer(modifier = Modifier.height(32.dp))
 
@@ -169,7 +170,7 @@ fun AudioTopHeader(onSettingsClick: () -> Unit) {
 }
 
 @Composable
-fun AudioSessionCard(playbackStatus: String) {
+fun AudioSessionCard(playbackStatus: String, venueName: String) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -209,7 +210,7 @@ fun AudioSessionCard(playbackStatus: String) {
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                text = "Grand Concert Hall ↗",
+                text = "$venueName ↗",
                 color = Color(0xFF17172A),
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold

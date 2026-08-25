@@ -30,13 +30,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun TranslateScreen(onBack: () -> Unit, onSettingsClick: () -> Unit) {
+fun TranslateScreen(venueName: String, onBack: () -> Unit, onSettingsClick: () -> Unit) {
     Column(
         modifier = Modifier.fillMaxSize().background(Color(0xFFF8F8FF)).padding(horizontal = 20.dp)
     ) {
         AudioTopHeader(onSettingsClick)
         Spacer(Modifier.height(14.dp))
-        CompactSessionCard()
+        CompactSessionCard(venueName)
         Spacer(Modifier.height(14.dp))
         TranslationCard("English (US)", "Out, damned spot! Out, I say!\nOne, two—why, then ‘tis time to do't.")
         Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
@@ -56,7 +56,7 @@ fun TranslateScreen(onBack: () -> Unit, onSettingsClick: () -> Unit) {
 }
 
 @Composable
-private fun CompactSessionCard() {
+private fun CompactSessionCard(venueName: String) {
     Card(
         modifier = Modifier.fillMaxWidth().height(126.dp),
         shape = RoundedCornerShape(8.dp),
@@ -71,7 +71,7 @@ private fun CompactSessionCard() {
                 Text("♡", color = Color(0xFF3047E8), fontSize = 22.sp)
             }
             Spacer(Modifier.height(10.dp))
-            Text("Grand Concert Hall ↗", color = Color(0xFF17172A), fontSize = 21.sp, fontWeight = FontWeight.Bold)
+            Text("$venueName ↗", color = Color(0xFF17172A), fontSize = 21.sp, fontWeight = FontWeight.Bold)
             Text("◷  00:42:17", color = Color(0xFF44444F), fontSize = 13.sp)
         }
     }
